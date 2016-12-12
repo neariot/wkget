@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/zsh
+setopt no_nomatch
 workdir=$(pwd)
 export PATH=$PATH:$workdir/tools
 function show_help ()
@@ -45,9 +46,9 @@ rm -rf "$workdir/temp/"$FILENAME""
 mkdir -p "$workdir/temp/"$FILENAME""
 tmpdir="$workdir/temp/"$FILENAME""
 cd $tmpdir
-rm -f *.swf
+rm -f *.swf >/dev/null 2>/dev/null
 dl-baidu-swf "$1"
-rm -f *.pdf
+rm -f *.pdf >/dev/null 2>/dev/null
 
 declare -a list
 list=($(ls *.swf))
@@ -70,6 +71,11 @@ wait
 done
 
 wait
+
+while [ -f "$output_file" ];
+do
+output_file="$workdir/output/"${$(basename "$output_file")%%.*}_.pdf""
+done
 
 pdfunite */*.pdf "$output_file"
 
