@@ -7,7 +7,7 @@ added multithread support and improved the structures.
 
 requirements 
 swftools
-https://github.com/matthiaskramm/swftool
+https://github.com/matthiaskramm/swftools
 BaiduDoc
 https://github.com/Hacksign/BaiduDoc.git
 imagemagick
