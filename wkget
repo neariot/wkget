@@ -1,0 +1,79 @@
+#!/bin/bash
+workdir=$(pwd)
+export PATH=$PATH:$workdir/tools
+function show_help ()
+{
+	echo 'usage'
+	echo "$0 [-o out.pdf] baidu-url"
+}
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+verbose=0
+
+while getopts "h?o:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    v)  verbose=1
+        ;;
+    o)  output_file="$OPTARG"
+        ;;
+    esac
+done
+
+#if [ "$output_file" = "" ]; then
+#	show_help
+#	exit 0
+#fi
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+if [ $# -eq 0 ]; then
+	show_help
+	exit 1
+fi
+FILENAME="$(wget -qO- $1 | iconv -f CSGB2312 -t UTF-8 | perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si')"
+output_file="$workdir/output/"$FILENAME.pdf""
+rm -rf "$workdir/temp/"$FILENAME""
+mkdir -p "$workdir/temp/"$FILENAME""
+tmpdir="$workdir/temp/"$FILENAME""
+cd $tmpdir
+rm -f *.swf
+dl-baidu-swf "$1"
+rm -f *.pdf
+
+declare -a list
+list=($(ls *.swf))
+swf_num=$(ls *.swf | wc -l)
+for i in $(seq 1 4 $(ls *.swf | wc -l)); 
+do   j=$i;  let k=$i+4;   
+while [ "$j" -lt "$k" ] ;   
+do  
+if [ -f ./${list[$j-1]} ]; 
+then 
+mkdir ${list[$j-1]}.d;
+mv ${list[$j-1]} ${list[$j-1]}.d
+cd ${list[$j-1]}.d
+swf2pdf ${list[$j-1]} &
+cd ../
+fi; 
+let j=j+1; 
+done;
+wait
+done
+
+wait
+
+pdfunite */*.pdf "$output_file"
+
+rm -rf $tmpdir
+cd $workdir
+echo 'Done!'
+
